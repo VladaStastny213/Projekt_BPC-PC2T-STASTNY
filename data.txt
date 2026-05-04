@@ -1,0 +1,2 @@
+S;1;Van;Dana;2000
+A;2;Vlad;Stastby;2001
