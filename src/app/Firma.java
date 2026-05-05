@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.*;
 import java.util.Scanner;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class Firma {
     private List<Zamestnanec> zamestnanci;
@@ -11,7 +16,53 @@ public class Firma {
     public Firma() {
         this.zamestnanci = new ArrayList<>();
     }
-    
+    public void ulozDoSql() {
+        String url = "jdbc:sqlite:databaze.db";
+        try (Connection conn = DriverManager.getConnection(url);
+             Statement stmt = conn.createStatement()) {
+             
+            stmt.execute("CREATE TABLE IF NOT EXISTS lide (id INTEGER PRIMARY KEY, typ TEXT, jmeno TEXT, prijmeni TEXT, rok INTEGER)");
+            stmt.execute("DELETE FROM lide"); 
+            
+            String sql = "INSERT INTO lide(id, typ, jmeno, prijmeni, rok) VALUES(?,?,?,?,?)";
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (Zamestnanec z : zamestnanci) {
+                    pstmt.setInt(1, z.getId());
+                    pstmt.setString(2, (z instanceof DatovyAnalytik) ? "A" : "S");
+                    pstmt.setString(3, z.getJmeno());
+                    pstmt.setString(4, z.getPrijmeni());
+                    pstmt.setInt(5, z.getRokarozeni());
+                    pstmt.executeUpdate();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Chyba ukladani SQL: " + e.getMessage());
+        }
+    }
+
+    public void nactiZSql() {
+        String url = "jdbc:sqlite:databaze.db";
+        try (Connection conn = DriverManager.getConnection(url);
+             Statement stmt = conn.createStatement()) {
+             
+            stmt.execute("CREATE TABLE IF NOT EXISTS lide (id INTEGER PRIMARY KEY, typ TEXT, jmeno TEXT, prijmeni TEXT, rok INTEGER)");
+            ResultSet rs = stmt.executeQuery("SELECT * FROM lide");
+            
+            zamestnanci.clear();
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String typ = rs.getString("typ");
+                String jm = rs.getString("jmeno");
+                String pr = rs.getString("prijmeni");
+                int rok = rs.getInt("rok");
+                
+                if (typ.equals("A")) pridejZamestnance(new DatovyAnalytik(id, jm, pr, rok));
+                else pridejZamestnance(new BezpecnostniSpecialista(id, jm, pr, rok));
+            }
+        } catch (Exception e) {
+            System.out.println("SQL zaloha neni k dispozici nebo je prazdna.");
+        }
+    }
     public boolean pridejVazbu(int id1, int id2, int uroven) {
         Zamestnanec z1 = najdiZamestnance(id1);
         Zamestnanec z2 = najdiZamestnance(id2);
@@ -52,11 +103,11 @@ public class Firma {
         return zamestnanci;
     }
     
-    public void ulozDoSouboru(String soubor) {
+    public void ulozeni(String soubor) {
         try (PrintWriter pw = new PrintWriter(new FileWriter(soubor))) {
             for (Zamestnanec z : zamestnanci) {
                 String typ = (z instanceof DatovyAnalytik) ? "A" : "S";
-                pw.println(typ + ";" + z.getId() + ";" + z.getJmeno() + ";" + z.getPrijmeni() + ";" + z.getRokNarozeni());
+                pw.println(typ + ";" + z.getId() + ";" + z.getJmeno() + ";" + z.getPrijmeni() + ";" + z.getRokarozeni());
             }
         } catch (IOException e) {
             System.out.println("Chyba při zápisu do souboru: " + e.getMessage());
@@ -64,17 +115,17 @@ public class Firma {
     }
 
     
-    public void nactiZeSouboru(String soubor) {
+    public void nacteni(String soubor) {
         try (Scanner s = new Scanner(new File(soubor))) {
             zamestnanci.clear();
             while (s.hasNextLine()) {
-                String[] casti = s.nextLine().split(";");
-                int id = Integer.parseInt(casti[1]);
-                String jm = casti[2];
-                String pr = casti[3];
-                int rok = Integer.parseInt(casti[4]);
+                String[] data = s.nextLine().split(";");
+                int id = Integer.parseInt(data[1]);
+                String jm = data[2];
+                String pr = data[3];
+                int rok = Integer.parseInt(data[4]);
                 
-                if (casti[0].equals("A")) pridejZamestnance(new DatovyAnalytik(id, jm, pr, rok));
+                if (data[0].equals("A")) pridejZamestnance(new DatovyAnalytik(id, jm, pr, rok));
                 else pridejZamestnance(new BezpecnostniSpecialista(id, jm, pr, rok));
             }
         } catch (FileNotFoundException e) {

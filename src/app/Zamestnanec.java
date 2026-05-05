@@ -7,15 +7,15 @@ public abstract class Zamestnanec {
     private int id;
     private String jmeno;
     private String prijmeni;
-    private int rokNarozeni;
+    private int roknarozeni;
    
     protected Map<Integer, Integer> spolupracovnici;
 
-    public Zamestnanec(int id, String jmeno, String prijmeni, int rokNarozeni) {
+    public Zamestnanec(int id, String jmeno, String prijmeni, int roknarozeni) {
         this.id = id;
         this.jmeno = jmeno;
         this.prijmeni = prijmeni;
-        this.rokNarozeni = rokNarozeni;
+        this.roknarozeni = roknarozeni;
         this.spolupracovnici = new HashMap<>();
     }
 
@@ -24,7 +24,7 @@ public abstract class Zamestnanec {
     public int getId() { return id; }
     public String getJmeno() { return jmeno; }
     public String getPrijmeni() { return prijmeni; }
-    public int getRokNarozeni() { return rokNarozeni; }
+    public int getRokarozeni() { return roknarozeni; }
     public Map<Integer, Integer> getSpolupracovnici() { return spolupracovnici; }
     
     public void pridejSpolupracovnika(int idKolegy, int uroven) {
@@ -45,6 +45,6 @@ public abstract class Zamestnanec {
     @Override
     public String toString() {
     	return String.format("ID: %d | %s %s (%d) | Kolegů: %d | Riziko: %.2f", 
-    	        id, jmeno, prijmeni, rokNarozeni, spolupracovnici.size(), getRizikoveSkore());
+    	        id, jmeno, prijmeni, roknarozeni, spolupracovnici.size(), getRizikoveSkore());
     }
 }
