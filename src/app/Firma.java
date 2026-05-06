@@ -9,7 +9,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-
+ 
 public class Firma {
     private List<Zamestnanec> zamestnanci;
     private final String url = "jdbc:sqlite:databaze.db";
